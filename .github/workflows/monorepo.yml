@@ -3,7 +3,7 @@ name: Monorepo CI
 on:
   push:
     branches: [main]
-    paths:
+    paths: 
       - 'services/**'
   pull_request:
     branches: [main]
@@ -38,9 +38,8 @@ jobs:
     if: needs.detect-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
-        fail-fast: false
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      fail-fast: false
     steps:  
       - uses: actions/checkout@v4
       - name: Build service
