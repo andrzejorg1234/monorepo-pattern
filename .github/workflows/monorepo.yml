@@ -1,22 +1,57 @@
-detect-changes:
-  runs-on: ubuntu-latest
-  outputs:
-    matrix: ${{ steps.set-matrix.outputs.matrix }}      #⬅️ output available to other jobs
-    has_changes: ${{ steps.set-matrix.outputs.has_changes }}
-  steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2                                    #⬅️ history is needed for the diff
+name: Monorepo CI
 
-    - name: Detect changed services
-      id: set-matrix
-      run: |
-        CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^services/' | cut -d'/' -f2 | sort -u)
-        if [ -z "$CHANGED" ]; then
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_changes: ${{ steps.set-matrix.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed services
+        id: set-matrix
+        run: |
+          # TODO: Use git diff to detect changed directories under services/
+          # TODO: Convert the directory list into JSON
+          # TODO: Set outputs: matrix and has_changes
           echo "has_changes=false" >> $GITHUB_OUTPUT
           echo "matrix={\"service\":[]}" >> $GITHUB_OUTPUT
-        else
-          JSON=$(echo "$CHANGED" | jq -R -s -c 'split("\n") | map(select(. != ""))')
-          echo "has_changes=true" >> $GITHUB_OUTPUT
-          echo "matrix={\"service\":$JSON}" >> $GITHUB_OUTPUT    #⬅️ format required by fromJson
-        fi
+
+  build:
+    needs: detect-changes
+    # TODO: Add a condition that checks has_changes
+    runs-on: ubuntu-latest
+    strategy:
+      # TODO: Use fromJson() with the detect-changes output as the matrix
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build service
+        run: |
+          # TODO: Build the service from the matrix
+          echo "Building..."
+
+  aggregate:
+    # TODO: Implement the build-result aggregation job
+    # - depends on build
+    # - runs even if build failed (if: always())
+    # - checks the result and reports an error if any build failed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          echo "TODO: Implement aggregation"
